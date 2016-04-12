@@ -9,6 +9,7 @@
   "dependencies": {
     "lynx": "~0.1.1",
     "coffee-script": "1.6.0",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "settings-sharelatex": "git+https://github.com/sharelatex/settings-sharelatex.git#v1.0.0"
   }
 }
