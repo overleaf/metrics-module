@@ -81,14 +81,14 @@ module.exports = Metrics =
 	set : (key, value, sampleRate = 1)->
 		console.log("counts are not currently supported")
 
-	inc : (key, sampleRate = 1, opts = {})->
+	inc : (key, sampleRate = 1, opts = {},help=null)->
 		key = Metrics.buildPromKey(key)
 		opts.app = appname
 		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Counter({
 				name: key,
-				help: key, 
+				help: help || key 
 				labelNames: Object.keys(opts)
 			})
 
@@ -96,28 +96,28 @@ module.exports = Metrics =
 		if process.env['DEBUG_METRICS']
 			console.log("doing inc", key, opts)
 
-	count : (key, count, sampleRate = 1, opts = {})->
+	count : (key, count, sampleRate = 1, opts = {},help=null)->
 		key = Metrics.buildPromKey(key)
 		opts.app = appname
 		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Counter({
 				name: key,
-				help: key, 
+				help: help || key
 				labelNames: Object.keys(opts)
 			})
 		promMetrics[key].inc(opts, count)
 		if process.env['DEBUG_METRICS']
 			console.log("doing count/inc", key, opts)
 
-	timing: (key, timeSpan, sampleRate, opts = {})->
+	timing: (key, timeSpan, sampleRate, opts = {},help=null)->
 		key = Metrics.buildPromKey("timer_" + key)
 		opts.app = appname
 		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Summary({
 				name: key,
-				help: key,
+				help: help || key,
 				maxAgeSeconds: 600,
 				ageBuckets: 10,
 				labelNames: Object.keys(opts)
@@ -139,28 +139,28 @@ module.exports = Metrics =
 			Metrics.timing(this.key, timeSpan, this.sampleRate, this.opts)
 			return timeSpan
 
-	gauge : (key, value, sampleRate = 1, opts = {})->
+	gauge : (key, value, sampleRate = 1, opts = {},help=null)->
 		key = Metrics.buildPromKey(key)
 		opts.app = appname
 		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Gauge({
 				name: key,
-				help: key, 
+				help: help || key, 
 				labelNames: Object.keys(opts)
 			})
 		promMetrics[key].set(opts, this.sanitizeValue(value))
 		if process.env['DEBUG_METRICS']
 			console.log("doing gauge", key, opts)
 			
-	globalGauge: (key, value, sampleRate = 1, opts = {})->
+	globalGauge: (key, value, sampleRate = 1, opts = {},help=null)->
 		key = Metrics.buildPromKey(key)
 		opts.app = appname
 		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Gauge({
 				name: key,
-				help: key, 
+				help: help || key, 
 				labelNames:  Object.keys(opts)
 			})
 		promMetrics[key].set(opts,this.sanitizeValue(value))
