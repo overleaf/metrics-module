@@ -83,42 +83,45 @@ module.exports = Metrics =
 
 	inc : (key, sampleRate = 1, opts = {})->
 		key = Metrics.buildPromKey(key)
+		opts.app = appname
+		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Counter({
 				name: key,
 				help: key, 
-				labelNames: ['app','host','status','method', 'path']
+				labelNames: Object.keys(opts)
 			})
-		opts.app = appname
-		opts.host = hostname
+
 		promMetrics[key].inc(opts)
 		if process.env['DEBUG_METRICS']
 			console.log("doing inc", key, opts)
 
-	count : (key, count, sampleRate = 1)->
+	count : (key, count, sampleRate = 1, opts = {})->
 		key = Metrics.buildPromKey(key)
+		opts.app = appname
+		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Counter({
 				name: key,
 				help: key, 
-				labelNames: ['app','host']
+				labelNames: Object.keys(opts)
 			})
-		promMetrics[key].inc({app: appname, host: hostname}, count)
+		promMetrics[key].inc(opts, count)
 		if process.env['DEBUG_METRICS']
 			console.log("doing count/inc", key, opts)
 
 	timing: (key, timeSpan, sampleRate, opts = {})->
 		key = Metrics.buildPromKey("timer_" + key)
+		opts.app = appname
+		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Summary({
 				name: key,
 				help: key,
 				maxAgeSeconds: 600,
 				ageBuckets: 10,
-				labelNames: ['app', 'host', 'path', 'status_code', 'method', 'collection', 'query']
+				labelNames: Object.keys(opts)
 			})
-		opts.app = appname
-		opts.host = hostname
 		promMetrics[key].observe(opts, timeSpan)
 		if process.env['DEBUG_METRICS']
 			console.log("doing timing", key, opts)
@@ -136,27 +139,31 @@ module.exports = Metrics =
 			Metrics.timing(this.key, timeSpan, this.sampleRate, this.opts)
 			return timeSpan
 
-	gauge : (key, value, sampleRate = 1)->
+	gauge : (key, value, sampleRate = 1, opts = {})->
 		key = Metrics.buildPromKey(key)
+		opts.app = appname
+		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Gauge({
 				name: key,
 				help: key, 
-				labelNames: ['app','host']
+				labelNames: Object.keys(opts)
 			})
-		promMetrics[key].set({app: appname, host: hostname}, this.sanitizeValue(value))
+		promMetrics[key].set(opts, this.sanitizeValue(value))
 		if process.env['DEBUG_METRICS']
 			console.log("doing gauge", key, opts)
 			
-	globalGauge: (key, value, sampleRate = 1)->
+	globalGauge: (key, value, sampleRate = 1, opts = {})->
 		key = Metrics.buildPromKey(key)
+		opts.app = appname
+		opts.host = hostname
 		if !promMetrics[key]?
 			promMetrics[key] = new prom.Gauge({
 				name: key,
 				help: key, 
-				labelNames: ['app','host']
+				labelNames:  Object.keys(opts)
 			})
-		promMetrics[key].set({app: appname},this.sanitizeValue(value))
+		promMetrics[key].set(opts,this.sanitizeValue(value))
 
 	mongodb: require "./mongodb"
 	http: require "./http"
