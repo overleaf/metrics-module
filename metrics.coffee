@@ -3,6 +3,7 @@ if process.env["USE_PROM_METRICS"] != "true"
 else
  	console.log("using prometheus")
 
+ExpressCompression = require('compression')
 prom = require('./prom_wrapper')
 
 collectDefaultMetrics = prom.collectDefaultMetrics
@@ -61,9 +62,13 @@ module.exports = Metrics =
 		destructors.push func
 
 	injectMetricsRoute: (app) ->
-		app.get('/metrics', (req, res) -> 
-			res.set('Content-Type', prom.registry.contentType)
-			res.end(prom.registry.metrics())
+		app.get('/metrics',
+			ExpressCompression({
+				level: parseInt(process.env.METRICS_COMPRESSION_LEVEL or '1'),
+			}),
+			(req, res) -> 
+				res.set('Content-Type', prom.registry.contentType)
+				res.end(prom.registry.metrics())
 		)
 
 	buildPromKey: (key = "")->
