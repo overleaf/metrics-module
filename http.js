@@ -6,9 +6,7 @@ module.exports.monitor = logger =>
   function(req, res, next) {
     const Metrics = require('./index')
     const startTime = process.hrtime()
-    const { end } = res
-    res.end = function() {
-      end.apply(this, arguments)
+    res.on('finish', function() {
       const responseTime = process.hrtime(startTime)
       const responseTimeMs = Math.round(
         responseTime[0] * 1000 + responseTime[1] / 1000000
@@ -71,7 +69,7 @@ module.exports.monitor = logger =>
         }
       }
       logger.info(info, '%s %s', req.method, reqUrl)
-    }
+    })
     next()
   }
 
